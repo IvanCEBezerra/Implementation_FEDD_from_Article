@@ -7,13 +7,11 @@ class ECDDDetector:
         self,
         lambda_param=0.2,
         W=1.0,
-        C=1.5,
-        burn_in=30
+        C=1.5
     ):
         self.lambda_param = lambda_param
         self.W = W
         self.C = C
-        self.burn_in = burn_in
 
         self.reset()
 
@@ -25,17 +23,17 @@ class ECDDDetector:
 
         self.distances = []
 
-        # EWMA value
+        # EWMA
         self.Z_t = None
 
-        # Distance statistics
+        # Estatísticas das distâncias
         self.mu_d = None
         self.sigma_d = None
 
-        # Std of EWMA
+        # Desvio padrão da EWMA
         self.sigma_Z = None
 
-        # Thresholds
+        # Limites
         self.warning_threshold = None
         self.drift_threshold = None
 
@@ -51,34 +49,30 @@ class ECDDDetector:
 
         distance = float(distance)
 
-        # 1. Store new distance
+        # 1. Armazena a nova distância
         self.distances.append(distance)
 
         t = len(self.distances)
 
-        # 2-3. Mean and std of distances
+        # 2. Média das distâncias
         self.mu_d = np.mean(self.distances)
 
+        # 3. Desvio padrão das distâncias
         self.sigma_d = np.std(
             self.distances,
             ddof=0
         )
 
-        # 4. Update EWMA
-
+        # 4. Atualiza a EWMA
         if self.Z_t is None:
-
             self.Z_t = distance
-
         else:
-
             self.Z_t = (
                 (1.0 - self.lambda_param) * self.Z_t
                 + self.lambda_param * distance
             )
 
-        # 5. Std of EWMA
-
+        # 5. Desvio padrão da EWMA
         factor = (
             self.lambda_param
             / (2.0 - self.lambda_param)
@@ -108,8 +102,7 @@ class ECDDDetector:
             + self.C * self.sigma_Z
         )
 
-        # 8. Check warning and drift
-
+        # 8. Testes
         warning_signal = (
             self.Z_t > self.warning_threshold
         )
@@ -122,13 +115,6 @@ class ECDDDetector:
             self.Z_t < self.warning_threshold
         )
 
-        # Suppress early alarms until variance stabilizes
-        if t <= self.burn_in:
-            warning_signal = False
-            drift_signal = False
-            below_warning = False
-
-        # 9. Return results
         return (
             warning_signal,
             drift_signal,

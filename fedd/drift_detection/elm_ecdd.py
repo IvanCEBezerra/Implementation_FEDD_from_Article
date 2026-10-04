@@ -27,7 +27,6 @@ class ELM_ECDD_Detector:
             lambda_param=lambda_param, 
             W=W, 
             C=C, 
-            burn_in=30 # Stabilize error variance
         )
         
         self.samples = []

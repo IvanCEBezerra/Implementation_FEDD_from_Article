@@ -1,4 +1,5 @@
 import numpy as np
+
 from fedd.drift_detection.ecdd import ECDDDetector
 from fedd.features_extration.distances import cosine_distance
 from fedd.features_extration.distances import pearson_distance
@@ -23,12 +24,19 @@ class FEDDDetector:
 
         self.samples = []
 
+        # s = início do conceito conhecido
         self.s = 0
+
+        # Vetor de características de referência
         self.fv0 = None
 
+        # Índice temporal
         self.t = -1
 
+        # Instante do primeiro warning
         self.warn = 0
+
+        # Quantidade de vezes abaixo do warning threshold
         self.below_warn = 0
 
         self.ecdd = ECDDDetector(
@@ -54,15 +62,21 @@ class FEDDDetector:
             "drift_threshold": None
         }
 
-        # Build initial feature vector
+        # ====================================================
+        # Steps 4-5:
+        # cria o vetor de características de referência
+        #
+        # Artigo:
+        # t - s = m - 1
+        # ====================================================
+
         if (
             self.fv0 is None
-            and self.t - self.s + 1 >= self.m
+            and self.t - self.s == self.m - 1
         ):
-
             initial_window = np.asarray(
                 self.samples[
-                    self.s:self.s + self.m
+                    self.s:self.t + 1
                 ]
             )
 
@@ -70,9 +84,18 @@ class FEDDDetector:
                 initial_window
             )
 
-        # Detection (wait for windows to separate)
-        elif self.t - self.s >= 2 * self.m - 1:
+        # ====================================================
+        # Steps 6-9:
+        # processamento online
+        #
+        # Artigo:
+        # t - s > m - 1
+        # ====================================================
 
+        elif (
+            self.fv0 is not None
+            and self.t - self.s > self.m - 1
+        ):
             new_window = np.asarray(
                 self.samples[
                     self.t - self.m + 1:self.t + 1
@@ -83,28 +106,27 @@ class FEDDDetector:
                 new_window
             )
 
-            # Compute distance
-            if self.distance_name == "cosine":
+            # Step 8: distância entre fv0 e fvt
 
+            if self.distance_name == "cosine":
                 distance = cosine_distance(
                     self.fv0,
                     fvt
                 )
 
             elif self.distance_name == "pearson":
-
                 distance = pearson_distance(
                     self.fv0,
                     fvt
                 )
 
             else:
-
                 raise ValueError(
                     f"Unknown distance: {self.distance_name}"
                 )
 
-            # Update ECDD
+            # Step 9: atualiza estatísticas ECDD
+
             (
                 warning_signal,
                 drift_signal,
@@ -114,7 +136,6 @@ class FEDDDetector:
             result["distance"] = distance
             result["warning"] = warning_signal
             result["drift"] = drift_signal
-
             result["Z_t"] = self.ecdd.Z_t
             result["mu_d"] = self.ecdd.mu_d
             result["warning_threshold"] = (
@@ -124,42 +145,50 @@ class FEDDDetector:
                 self.ecdd.drift_threshold
             )
 
-            # Handle warning
-            if warning_signal and self.warn == 0:
+            # =================================================
+            # Steps 10-13:
+            # registra o primeiro warning
+            # =================================================
 
+            if (
+                self.warn == 0
+                and warning_signal
+            ):
                 self.warn = self.t
-                self.below_warn = 0
 
-            # Handle drift
+            # =================================================
+            # Steps 14-17:
+            # drift
+            # =================================================
+
             if drift_signal:
 
-                if self.warn != 0:
-                    self.s = self.warn
-                else:
-                    self.s = self.t
+                # Artigo: s = warn
+                self.s = self.warn
 
                 self.warn = 0
                 self.below_warn = 0
 
+                # Reinicializa o processo para o novo conceito
                 self.fv0 = None
-
                 self.ecdd.reset()
 
-            # Cancel warning if below threshold
+            # =================================================
+            # Steps 18-26:
+            # saída do estado de warning
+            # =================================================
 
-            if self.warn != 0:
+            elif self.warn > 0:
 
                 if below_warning:
                     self.below_warn += 1
-                else:
-                    self.below_warn = 0
 
-                if self.below_warn >= 10:
+                if self.below_warn == 10:
                     self.warn = 0
                     self.below_warn = 0
 
             result["warning_state"] = (
-                self.warn != 0
+                self.warn > 0
             )
 
         return result
