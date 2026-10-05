@@ -1,6 +1,7 @@
 from river import stream
 import numpy as np
 
+
 def vector_stream(vector):
     """Creates a stream from a vector. 
     With river, a stream is an iterable of data points. This function takes a vector (a list or numpy array) and yields each value in the vector one at a time.

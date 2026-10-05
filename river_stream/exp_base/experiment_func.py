@@ -1,7 +1,7 @@
 import numpy as np
 from fedd.drift_detection.detector import FEDDDetector
 from fedd.drift_detection.elm_ecdd import ELM_ECDD_Detector
-from river_stream.vector_stream import vector_stream
+from river_stream.exp_base.vector_stream import vector_stream
 from pathlib import Path
 
 

@@ -1,0 +1,12 @@
+{
+  "generator": "FriedmanDrift",
+  "drift_type": "lea",
+  "drift_kind": "abrupt",
+  "seed": 0,
+  "n_samples": 12000,
+  "positions": [
+    3000,
+    6000,
+    9000
+  ]
+}

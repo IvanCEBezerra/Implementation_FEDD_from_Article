@@ -1,0 +1,11 @@
+{
+  "name": "friedman_gsg_seed0",
+  "drift_type": "gsg",
+  "drift_kind": "gradual",
+  "true_drifts": [
+    4000,
+    8000
+  ],
+  "transition_window": 400,
+  "seed": 0
+}

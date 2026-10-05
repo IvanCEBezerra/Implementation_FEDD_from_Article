@@ -1,0 +1,12 @@
+{
+  "generator": "FriedmanDrift",
+  "drift_type": "gsg",
+  "drift_kind": "gradual",
+  "seed": 0,
+  "n_samples": 12000,
+  "positions": [
+    4000,
+    8000
+  ],
+  "transition_window": 400
+}

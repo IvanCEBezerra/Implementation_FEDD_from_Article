@@ -1,8 +1,8 @@
 from pathlib import Path
 import numpy as np
 
-from river_stream.experiment_func import save_results, select_linear_datasets
-from river_stream.experiment_func import run_fedd_experiment, run_baseline_experiment
+from river_stream.exp_base.experiment_func import save_results, select_linear_datasets
+from river_stream.exp_base.experiment_func import run_fedd_experiment, run_baseline_experiment
 
 OUTPUT_DIR = Path("outputs_experiment")
 

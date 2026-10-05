@@ -1,0 +1,12 @@
+{
+  "name": "friedman_lea_seed1",
+  "drift_type": "lea",
+  "drift_kind": "abrupt",
+  "true_drifts": [
+    3000,
+    6000,
+    9000
+  ],
+  "transition_window": null,
+  "seed": 1
+}
